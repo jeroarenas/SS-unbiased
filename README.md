@@ -20,12 +20,16 @@ Closed-form, finite-sample expressions are derived for the excess mean-square er
 * Python ≥ 3.9
 * NumPy
 * Matplotlib
+* Tqdm (optional)
 
 ## Files
 
 | File | Purpose |
 |------|---------|
-| `make_figures.py` | Reproduces the two figures of the experimental section. |
+| `make_figures.py` | Reproduces the figures of the experimental section |
+| `FiguresNB.ipynb` | Notebook that facilitates running the code with other settings |
+
+Additionally, the repo contains PDF version of the figures that have been included in the submitted paper.
 
 ## Quick start
 
@@ -55,7 +59,7 @@ unknown vector aligned to the low-eigenvalue subspace of the input covariance).
 | `marker_step` | Spacing in N between Monte Carlo markers for overlapping them on top of the theoretical curves |
 | `seed` | Random-number generator seed |
 | `show_title` | If `True`, an informative title is added to each figure |
-| `fig1_path`, `fig2_path` | Output paths for the EMSE figure and the mixing-parameter figure |
+| `fig1_path`, `fig2_path` | Output paths for the EMSE figure and the mixing-parameter figure (optional, do not use these parameters when working with the notebook version, and the Figures will be shown in the notebook)|
 
 Example:
 
