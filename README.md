@@ -3,6 +3,7 @@
 This repository contains the code that reproduces the experiments of the paper
 
 > **When Does Known Input Covariance Help Least Squares? A Closed-Form Analysis**
+
 > J. Arenas-García, C. Moriana-Varo, L. K. Hansen, and J. Larsen
 > *IEEE Signal Processing Letters*, submitted.
 
