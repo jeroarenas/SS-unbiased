@@ -1,8 +1,8 @@
-# Known input covariance and least squares: closed-form analysis
+# Known input covariance and least squares: finite-sample analysis
 
 This repository contains the code that reproduces the experiments of the paper
 
-> **When Does Known Input Covariance Help Least Squares? A Closed-Form Analysis**
+> **When Does Known Input Covariance Help Least Squares? A Finite-Sample Analysis**
 
 > J. Arenas-García, C. Moriana-Varo, L. K. Hansen, and J. Larsen
 > *IEEE Signal Processing Letters*, submitted.
@@ -86,7 +86,7 @@ make_figures(
 
 ```bibtex
 @article{arenas2026SSunbiased,
-  title   = {When Does Known Input Covariance Help Least Squares? A Closed-Form Analysis},
+  title   = {When Does Known Input Covariance Help Least Squares? A Finite-Sample Analysis},
   author  = {Arenas-Garc\'\i{}a, Jer\'onimo and Moriana-Varo, Carlos and Hansen, Lars Kai and Larsen, Jan},
   journal = {IEEE Signal Processing Letters},
   year    = {2026},
