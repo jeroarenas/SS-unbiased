@@ -498,7 +498,7 @@ def make_figure_finite_nu(M=64, N_max=160, noise_power=0.1, colouring=("ar1", 0.
     ax.axhline(0, color="#999999", lw=0.7, zorder=0)
     # All curves dashed (solid lines are reserved for the theoretical curves of
     # Fig. 1). 
-    ax.plot(Ns, gain(comb_or), "--D", color="m", label="Combination (LOO)",
+    ax.plot(Ns, gain(comb_or), "--D", color="m", label=r"Comb LS-SS",
             markersize=3.6, markeredgewidth=0.6)
     markers = ["o", "s", "^", "v"]
     cmap = plt.cm.viridis(np.linspace(0.12, 0.72, len(Nu_list)))
@@ -525,6 +525,7 @@ def make_figure_finite_nu(M=64, N_max=160, noise_power=0.1, colouring=("ar1", 0.
 
 
 if __name__ == "__main__":
+    """
     # AR(1) regressors, sigma_eps_2=0.5
     make_figures(M=64, N_max=200, n_runs=1000, w_norm=1.0, noise_power=0.5,
                  colouring=('ar1',0.9), alignment="random", k=1,
@@ -540,6 +541,7 @@ if __name__ == "__main__":
                  colouring=('ar1',0.8), alignment="low", k=16,
                  marker_step=25, seed=42, show_title=False,
                  fig1_path="EMSE_AR1_eps01_low.pdf", fig2_path="lambda_AR1_eps01_low.pdf")
+    """
     # Finite unlabelled-sample experiment: EMSE gain over min(LS,SS) vs N
     make_figure_finite_nu(M=64, N_max=160, noise_power=0.1, colouring=('ar1', 0.9),
                           alignment="random", k=1, n_runs=1000, seed=42,
