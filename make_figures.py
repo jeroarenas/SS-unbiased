@@ -36,11 +36,11 @@ def set_style():
     rcParams.update({
         "font.family": "serif",
         "font.size": 9,
-        "axes.labelsize": 10,
-        "axes.titlesize": 10,
+        "axes.labelsize": 8.5,
+        "axes.titlesize": 8.5,
         "legend.fontsize": 6.5,
-        "xtick.labelsize": 8.5,
-        "ytick.labelsize": 8.5,
+        "xtick.labelsize": 7,
+        "ytick.labelsize": 7,
         "lines.linewidth": 1.7,
         "axes.linewidth": 0.8,
         "axes.edgecolor": "#444444",
@@ -315,13 +315,13 @@ def figure_emse(M, N_max, w_o, Sigma, sigma_e2, mc, N_markers,
             markersize=3.8, linestyle="none",
             label="Combination (LOO)")
 
-    ax.set_xlabel(r"Training set size $N$")
-    #ax.set_xticklabels([])
+    #ax.set_xlabel(r"Training set size $N$")
+    ax.set_xticklabels([])
     ax.set_ylabel("EMSE (dB)")
     if title:
         ax.set_title(title)
     ax.set_xlim(M, N_max)
-    ax.legend(ncol=2, loc="best")
+    # ax.legend(ncol=2, loc="best")
     fig.tight_layout()
     if save_path is None:
         plt.show()
@@ -347,7 +347,7 @@ def figure_lambda(M, N_max, w_o, Sigma, sigma_e2, mc, N_markers,
         for N in N_all])
 
     # wider, shorter aspect ratio
-    fig, ax = plt.subplots(figsize=(3.5, 1.5))
+    fig, ax = plt.subplots(figsize=(3.5, 1.3))
 
     ax.plot(N_all, lam_all, "-", color=COL["comb"],
             label=r"$\lambda^*$ (optimal)")
@@ -367,7 +367,7 @@ def figure_lambda(M, N_max, w_o, Sigma, sigma_e2, mc, N_markers,
         ax.set_title(title)
     ax.set_xlim(M, N_max)
     ax.set_ylim(-0.05, 1.08)
-    ax.legend(loc="best", ncol=2)
+    # ax.legend(loc="best", ncol=2)
     fig.tight_layout()
     if save_path is None:
         plt.show()
@@ -430,6 +430,100 @@ def make_figures(M=96, N_max=480, n_runs=500, w_norm=1.0, noise_power=0.1,
                   title, fig2_path)
 
 
+# =============================================================================
+# Finite unlabeled-sample experiment
+# =============================================================================
+# Unbiased finite-N_u counterpart of the SS estimator, using the input
+# covariance estimated from both the labelled and N_u unlabelled regressors:
+#
+#   w_SS(N_u) = (N+N_u)/N (X X^T + Xu Xu^T)^{-1} X y
+#
+# The figure shows the EMSE gain over the best individual estimator, min(xi_LS, xi_SS),
+# for the LOO combination with the SS estimator and with w_SS(N_u)
+# for several N_u. The mixing parameter is selected with the paper's LOO
+# procedure, with the effective inverse covariance (N+N_u)(X X^T+Xu Xu^T)^{-1}.
+def make_figure_finite_nu(M=64, N_max=160, noise_power=0.1, colouring=("ar1", 0.9),
+                          alignment="random", k=1, w_norm=1.0, Nu_list=None,
+                          N_step=7, n_runs=1000, seed=42,
+                          show_title=False, save_path=None):
+    
+    """EMSE gain over min(LS, SS) vs training-set size N, for the LOO combination
+    with the oracle SS estimator and with the finite-N_u estimator w_SS(N_u)."""
+    set_style()
+    sigma_e2 = float(noise_power); sigma_e = np.sqrt(sigma_e2)
+    rng = np.random.default_rng(seed)
+    Sigma = build_covariance(M, colouring)
+    w_o = build_w_o(Sigma, w_norm, alignment, k, rng)
+    Sigma_inv = np.linalg.inv(Sigma)
+    Sigma_chol = np.linalg.cholesky(Sigma)
+    wSw = float(w_o @ Sigma @ w_o)
+    if Nu_list is None:
+        Nu_list = [M, 2 * M, 4 * M, 8 * M]
+
+    def emse(d):
+        return float(d @ Sigma @ d)
+
+    Ns = np.array(sorted(set(np.arange(M + 3, N_max + 1, N_step).tolist()
+                             + [M + 7])))  # extra point on the rising edge
+    min_lsss = np.array([min(emse_ls(M, N, sigma_e2),
+                             emse_ss(M, N, wSw, sigma_e2)) for N in Ns])
+
+    rngmc = np.random.default_rng(seed + 1)
+    comb_or = np.zeros(len(Ns))
+    comb_nu = {Nu: np.zeros(len(Ns)) for Nu in Nu_list}
+    for j, N in enumerate(tqdm(Ns, desc="gain vs N", unit="N")):
+        acc_or = 0.0; acc = {Nu: 0.0 for Nu in Nu_list}
+        for _ in range(n_runs):
+            X, y = generate_dataset(N, w_o, Sigma_chol, sigma_e, rngmc)
+            Xy = X @ y; XXt = X @ X.T
+            wls = estimator_ls(X, y)
+            wsso = estimator_ss(X, y, Sigma_inv)
+            lam0 = estimate_lambda_loo(X, y, Sigma_inv)
+            acc_or += emse(w_o - (lam0 * wls + (1.0 - lam0) * wsso))
+            Xu_full = Sigma_chol @ rngmc.standard_normal((M, max(Nu_list)))
+            for Nu in Nu_list:
+                S = XXt + Xu_full[:, :Nu] @ Xu_full[:, :Nu].T
+                w_ss = (N + Nu) / N * np.linalg.solve(S, Xy)
+                Minv = (N + Nu) * np.linalg.inv(S)
+                lam = estimate_lambda_loo(X, y, Minv)
+                acc[Nu] += emse(w_o - (lam * wls + (1.0 - lam) * w_ss))
+        comb_or[j] = acc_or / n_runs
+        for Nu in Nu_list:
+            comb_nu[Nu][j] = acc[Nu] / n_runs
+
+    to_db = lambda v: 10.0 * np.log10(np.maximum(v, 1e-15))
+    gain = lambda c: to_db(min_lsss) - to_db(c)
+
+    fig, ax = plt.subplots(figsize=(3.5, 2.2))
+    ax.axhline(0, color="#999999", lw=0.7, zorder=0)
+    # All curves dashed (solid lines are reserved for the theoretical curves of
+    # Fig. 1). 
+    ax.plot(Ns, gain(comb_or), "--D", color="m", label="Combination (LOO)",
+            markersize=3.6, markeredgewidth=0.6)
+    markers = ["o", "s", "^", "v"]
+    cmap = plt.cm.viridis(np.linspace(0.12, 0.72, len(Nu_list)))
+    for Nu, c, mkr in zip(Nu_list, cmap, markers):
+        mult = Nu // M
+        mlabel = "M" if mult == 1 else f"{mult}M"
+        ax.plot(Ns, gain(comb_nu[Nu]), "--", marker=mkr, color=c,
+                markerfacecolor="none", markeredgecolor=c,
+                markersize=4.0, markeredgewidth=0.9,
+                label=rf"Comb $N_u={mlabel}$")
+
+    ax.set_xlabel(r"Training set size $N$")
+    ax.set_ylabel(r"Gain over $\min(\xi_{LS},\xi_{SS})$ (dB)  ")
+    ax.set_xlim(M, N_max)
+    if show_title:
+        ax.set_title(rf"$M={M}$, $\sigma_\epsilon^2={sigma_e2:g}$")
+    ax.legend(ncol=2, loc="upper right", columnspacing=0.8,
+              handlelength=1.6, handletextpad=0.4, fontsize=6)
+    fig.tight_layout()
+    if save_path is None:
+        plt.show()
+    else:
+        fig.savefig(save_path); plt.close(fig); print(f"saved: {save_path}")
+
+
 if __name__ == "__main__":
     # AR(1) regressors, sigma_eps_2=0.5
     make_figures(M=64, N_max=200, n_runs=1000, w_norm=1.0, noise_power=0.5,
@@ -446,6 +540,9 @@ if __name__ == "__main__":
                  colouring=('ar1',0.8), alignment="low", k=16,
                  marker_step=25, seed=42, show_title=False,
                  fig1_path="EMSE_AR1_eps01_low.pdf", fig2_path="lambda_AR1_eps01_low.pdf")
-
+    # Finite unlabelled-sample experiment: EMSE gain over min(LS,SS) vs N
+    make_figure_finite_nu(M=64, N_max=160, noise_power=0.1, colouring=('ar1', 0.9),
+                          alignment="random", k=1, n_runs=1000, seed=42,
+                          show_title=False, save_path="EMSE_finite_Nu.pdf")
     print("done.")
     

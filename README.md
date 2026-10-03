@@ -77,10 +77,37 @@ make_figures(
 )
 ```
 
+## Finite unlabelled-sample experiment
+
+The finite-N<sub>u</sub> figure is produced by `make_figure_finite_nu`, which plots the EMSE gain of the LOO combination over the better individual estimator, min(ξ<sub>LS</sub>, ξ<sub>SS</sub>), as a function of the training-set size `N`, for the combination with the oracle SS estimator and with the finite-sample estimator w<sub>SS</sub>(N<sub>u</sub>) for several unlabelled-sample budgets `Nu_list` (by default {M, 2M, 4M, 8M}). Its main inputs are
+
+| Parameter | Description |
+|-----------|-------------|
+| `M`, `noise_power`, `colouring`, `alignment`, `k`, `w_norm`, `n_runs`, `seed` | As in `make_figures` above |
+| `N_max` | Largest training-set size shown |
+| `Nu_list` | List of unlabelled-sample budgets N<sub>u</sub> (default `[M, 2M, 4M, 8M]`) |
+| `N_step` | Spacing in N of the evaluated points |
+| `save_path` | Output path (omit when working in the notebook, and the figure is shown inline) |
+
+Example:
+
+```python
+from make_figures import make_figure_finite_nu
+
+make_figure_finite_nu(
+    M=64, N_max=160, noise_power=0.1,
+    colouring=("ar1", 0.9), alignment="random",
+    n_runs=1000, seed=42,
+    save_path="EMSE_finite_Nu.pdf",
+)
+```
+
 ## What the figures show
 
 * **EMSE figure.** Closed-form curves (solid) for the EMSE of the LS estimator, the SS estimator, the cross-EMSE between them, and the optimal combination. Monte Carlo estimates are overlaid as markers. For the LS, SS and cross-EMSE curves, the markers validate their own curve; for the combination, the markers correspond to the realised estimator whose mixing parameter is selected by LOO (compared against the theoretical optimum).
 * **Mixing-parameter figure.** Optimal mixing parameter λ\* (solid line), together with the mean of the LOO estimate (markers) and a shaded band of ±1 standard deviation across Monte Carlo runs.
+* **Finite unlabelled-sample figure.** EMSE gain over min(ξ<sub>LS</sub>, ξ<sub>SS</sub>) vs N (dashed, with markers): the LOO combination with the oracle SS estimator, and with w<sub>SS</sub>(N<sub>u</sub>) for N<sub>u</sub> ∈ {M, 2M, 4M, 8M}. The finite-N<sub>u</sub> combinations approach the oracle gain as N<sub>u</sub> grows.
+
 
 ## Citation
 
