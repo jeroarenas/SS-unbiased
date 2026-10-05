@@ -321,7 +321,7 @@ def figure_emse(M, N_max, w_o, Sigma, sigma_e2, mc, N_markers,
     if title:
         ax.set_title(title)
     ax.set_xlim(M, N_max)
-    # ax.legend(ncol=2, loc="best")
+    ax.legend(ncol=2, loc="best")
     fig.tight_layout()
     if save_path is None:
         plt.show()
@@ -367,7 +367,7 @@ def figure_lambda(M, N_max, w_o, Sigma, sigma_e2, mc, N_markers,
         ax.set_title(title)
     ax.set_xlim(M, N_max)
     ax.set_ylim(-0.05, 1.08)
-    # ax.legend(loc="best", ncol=2)
+    ax.legend(loc="best", ncol=2)
     fig.tight_layout()
     if save_path is None:
         plt.show()
@@ -532,19 +532,21 @@ if __name__ == "__main__":
                  marker_step=13, seed=42, show_title=False,
                  fig1_path="EMSE_AR1_eps05.pdf", fig2_path="lambda_AR1_eps05.pdf")
     # AR(1) regressors, sigma_eps_2=0.1
+    """
     make_figures(M=64, N_max=160, n_runs=1000, w_norm=1.0, noise_power=0.1,
                  colouring=('ar1',0.9), alignment="random", k=1,
                  marker_step=10, seed=42, show_title=False,
                  fig1_path="EMSE_AR1_eps01.pdf", fig2_path="lambda_AR1_eps01.pdf")
+    """
     # AR(1) regressors, sigma_eps_2=0.1, aligned in small eigenvalues subspace
     make_figures(M=64, N_max=270, n_runs=1000, w_norm=1.0, noise_power=0.1,
                  colouring=('ar1',0.8), alignment="low", k=16,
                  marker_step=25, seed=42, show_title=False,
                  fig1_path="EMSE_AR1_eps01_low.pdf", fig2_path="lambda_AR1_eps01_low.pdf")
-    """
     # Finite unlabelled-sample experiment: EMSE gain over min(LS,SS) vs N
     make_figure_finite_nu(M=64, N_max=160, noise_power=0.1, colouring=('ar1', 0.9),
                           alignment="random", k=1, n_runs=1000, seed=42,
                           show_title=False, save_path="EMSE_finite_Nu.pdf")
+    """
     print("done.")
     
